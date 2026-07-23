@@ -15,7 +15,7 @@ def speak(text):
 
 def processCommand(c):
     if "open google" in c.lower():
-        webbrowser.open("https://google.com")
+        webbrowser.open("https://google.com") 
     elif "open youtube" in c.lower():
        webbrowser.open("https://youtube.com")
     elif c.lower().startswith('play'):
