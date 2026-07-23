@@ -1,68 +1,24 @@
-import os
-import speech_recognition as sr
-import webbrowser
-import pyttsx3
-import musicLibrary
-import pyjokes
-import datetime
-# pip install pocketsphinx
-recognizer = sr.Recognizer()
-engine = pyttsx3.init()
+from listener import listen  # Imports listen function from listener file 
+from speech import speak   # Imports speech function from speak file
+from commands import process  # imports commands function from process file
+from config import WAKE_WORD  # imports WAKE_WORD from config file(If required the name of the assistant can be changed easily)
+import time
 
-def speak(text):
-    engine.say(text)
-    engine.runAndWait()
+print("Initializing Turbo.....")
+print("Turbo is Ready.") 
 
-def processCommand(c):
-    if "open google" in c.lower():
-        webbrowser.open("https://google.com") 
-    elif "open youtube" in c.lower():
-       webbrowser.open("https://youtube.com")
-    elif c.lower().startswith('play'):
-          song = c.lower().split(' ')[1]
-          link = musicLibrary.music[song]
-          webbrowser.open(link)
-    elif "tell me a joke" in c.lower():
-          joke = pyjokes.get_joke()
-          print(joke)
-          speak(joke)
-    elif "what is today's date" in c.lower():
-        date = datetime.datetime.now().strftime("%B %d, %Y")
-        print(date)
-        speak(f"Today's date is {date}")
-    elif "what's the time" in c.lower():
-        time = datetime.datetime.now().strftime("%I:%M %p")
-        print(time)
-        speak(f"The time is {time}")
+while True:  # This is required so that turbo keeps on listening infinitely and not stop after executing only one command
 
-    elif c.lower().startswith("search"):
-        query = c.lower().replace("search", "").strip()
-        url = f"https://www.google.com/search?q={query}"
-        webbrowser.open(url)
-        speak(f"Here are the search results for {query}")
+    print("Listening...")
+    word = listen()  # This will call listen command from listener and store it in word
+    print("Wake Word:", word)  # Prints the word
 
-if __name__ == "__main__":
-  speak("Initializing Turbo....")
-  while True:
-    # Listen for the wake word "Turbo"
-    # Obtain audio from the microphone
-    r = sr.Recognizer()
-    
-    print("recognizing...")
-    try:
-        with sr.Microphone() as source:
-           print("Listening...")
-           audio = r.listen(source,timeout=4,phrase_time_limit=4)
-        word = r.recognize_google(audio)
-        if(word.lower() == "turbo"):
-           speak("Yes,how can I help you?")
-           #Listen for command
-           with sr.Microphone() as source:
-               print("Turbo Active...")
-               audio = r.listen(source)
-               command = r.recognize_google(audio)
+    if word and WAKE_WORD in word.lower():  # If the Wake_word is called then speak the next line
+        speak("Yes, how can I help you?")  
+        command = listen(timeout=5, phrase_time_limit=5)  # This listen captures the actual command(wait for 5 sec for the user to start speaking, and record only 5 seconds)
 
-               processCommand(command)
+        if(command == None):  # If command received is none then continue the conversation starting with waiting for wake word
+            continue
 
-    except Exception as e:
-        print("Error; {0}".format(e))
+        print(command)
+        process(command)
